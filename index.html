@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="eventDrops.css" />
+    <link rel="stylesheet" href="barChart.css" />
+    <link rel="stylesheet" href="style.css" />
+
+    <script src="config.js"></script>
+    <script src="d3.min.js"></script>
+    <script src="eventDrops.js"></script>
+</head>
+    
+<body>
+
+<div id="picker">
+    <span>Select a date </span>
+    <input type="date" id="datePicker" onchange="loadData()"/>
+</div>
+<div id="message"></div>
+<div id="timeline" class="panel">Timeline</div>
+<div id="barChart" class="panel">Statistics</div>
+
+<script>
+
+var eventDropsChart;
+var stats = [];
+var start = new Date(999999999999999), end = new Date(0);
+
+function loadData() {
+    console.log("> loadDoc");
+    var xhttp = new XMLHttpRequest();
+      
+    xhttp.onreadystatechange = function() {
+        if (xhttp.readyState == 4) {
+            if(xhttp.status == 200) {
+                document.getElementById('message').innerHTML = '';
+                processData(xhttp.responseText);
+            }
+            else {
+                document.getElementById('message').innerHTML = 'No data for selected date';
+                document.getElementById('timeline').innerHTML = '';
+                document.getElementById('barChart').innerHTML = '';
+            }
+        }
+    };
+    var pickerVal = document.getElementById('datePicker').value;
+    xhttp.open("GET", "logs/" + pickerVal + ".csv", true);
+    xhttp.send();
+}
+
+function processData(data) {
+    console.log("> processData");
+
+    var lines = data.split("\n");
+      
+    for(var i = 0; i < lines.length; i++) {
+        var currentLine = lines[i].split(",");
+        var currentTime = new Date(currentLine[0]);
+        var currentPin = currentLine[1];
+    
+        if(currentTime < start)
+            start = currentTime;
+        if(currentTime > end)
+            end = currentTime;
+
+        for(var j = 0; j < zones.length; j++) {
+            if(currentPin == zones[j].pin)
+                zones[j].dates.push(currentTime);
+        }
+    }
+    
+    drawTimeline();
+
+    for(var j = 0; j < zones.length; j++) {
+        stats.push(zones[j].dates.length);
+    }
+    
+    drawBarChart();
+}
+
+function drawTimeline() {
+    console.log("> drawTimeline");
+      
+    var color = d3.scale.category20();
+    var width = document.getElementById('timeline').offsetWidth;
+    
+    eventDropsChart = d3.chart.eventDrops()
+        .eventLineColor(function (datum, index) {
+            return color(index);
+        })
+        .width(width)
+        .margin({ top: 60, left: 150, bottom: 0, right: 50 })
+        .start(start)
+        .end(end)
+        .eventClick(eventClick)
+        .eventZoom(eventZoom)
+        .eventHover(eventHover);
+        
+    d3.select('#timeline')
+        .datum(zones)
+        .call(eventDropsChart);
+}
+
+function eventClick() {
+    //TBD
+}
+
+function eventZoom() {
+    //TBD
+}
+
+function eventHover(event) {
+    //TBD
+}
+
+function drawBarChart() {
+    console.log("> drawBarChart");
+
+    var x = d3.scale.linear()
+        .domain([0, d3.max(stats)])
+        .range([0, 420]);
+    
+    d3.select("#barChart")
+      .selectAll("div")
+        .data(stats)
+      .enter().append("div")
+        .style("width", function(d) { return x(d) + "px"; })
+        .text(function(d) { return d; });
+} 
+
+window.onresize = function(event) {
+    drawTimeline();
+    drawBarChart();
+};
+
+</script>
+
+</body>
+</html>

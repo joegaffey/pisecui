@@ -1,0 +1,28 @@
+.zoom {
+fill: transparent;
+cursor: pointer;
+}
+
+.graph-body .line circle {
+opacity: 0.5;
+}
+
+.axis path,
+.axis line {
+fill: none;
+stroke: #000;
+shape-rendering: crispEdges;
+}
+.x.axis path {
+display: none;
+}
+
+h2{
+font-size: 18px;
+}
+div{
+position: relative;
+}
+legend {
+font-size: 15;
+}
